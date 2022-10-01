@@ -1,0 +1,187 @@
+CREATE DATABASE LearnerDriverCars;
+
+USE LearnerDriverCars;
+
+CREATE TABLE CarDesign
+(CarMake VARCHAR (13) PRIMARY KEY NOT NULL,
+DoorNumber INTEGER NOT NULL
+);
+
+INSERT INTO CarDesign
+(CarMake, DoorNumber)
+VALUES 
+('Peugeot 107', '3'),
+('Hyundai i10', '5'),
+('Volkswagen up', '3'),
+('Ford Ka', '3'),
+('Citroen C1', '5'),
+('Toyota Aygo', '5'),
+('Fiat Punto', '3'),
+('Kia Picanto', '5'),
+('Fiat 500', '3'),
+('Nissan Micra', '5');
+
+CREATE TABLE CarColour
+(CarMake VARCHAR (13) NOT NULL,
+ ColoursAvailable INTEGER NOT NULL,
+FOREIGN KEY (CarMake) REFERENCES CarDesign (CarMake)
+);
+
+INSERT INTO CarColour
+(CarMake, ColoursAvailable)
+VALUES 
+('Peugeot 107', '23'),
+('Hyundai i10', '4'),
+('Volkswagen up', '10'),
+('Ford Ka', '6'),
+('Citroen C1', '8'),
+('Toyota Aygo', '28'),
+('Fiat Punto', '6'),
+('Kia Picanto', '40'),
+('Fiat 500', '13'),
+('Nissan Micra', '6');
+
+CREATE TABLE CarFinance
+(CarMake VARCHAR (13) NOT NULL,
+InsurancePremium DECIMAL (5,2) NOT NULL,
+ Price INTEGER NOT NULL,
+FOREIGN KEY (CarMake) REFERENCES CarDesign (CarMake)
+);
+
+INSERT INTO CarFinance
+(CarMake, InsurancePremium, Price)
+VALUES 
+('Peugeot 107', '414.55', '7995'),
+('Hyundai i10', '422.66', '11195'),
+('Volkswagen up', '423.67', '11840'),
+('Ford Ka', '423.78', '8225'),
+('Citroen C1', '429.17', '11717'),
+('Toyota Aygo', '479.81', '13174'),
+('Fiat Punto', '490.33', '5995'),
+('Kia Picanto', '498.40', '10946'),
+('Fiat 500', '508.02', '16000'),
+('Nissan Micra', '523.09', '14558');
+
+CREATE TABLE CarPower
+(CarMake VARCHAR (13) NOT NULL,
+Horsepower INTEGER NOT NULL,
+FOREIGN KEY (CarMake) REFERENCES CarDesign (CarMake)
+);
+
+INSERT INTO CarPower
+(CarMake, Horsepower)
+VALUES 
+('Peugeot 107', '67'),
+('Hyundai i10', '79'),
+('Volkswagen up', '112'),
+('Ford Ka', '74'),
+('Citroen C1', '72'),
+('Toyota Aygo', '71'),
+('Fiat Punto', '86'),
+('Kia Picanto', '83'),
+('Fiat 500', '105'),
+('Nissan Micra', '115');
+
+CREATE TABLE CarEfficiency
+(CarMake VARCHAR (13) NOT NULL,
+MilesPerGallon DECIMAL (3,1) NOT NULL,
+CO2Emissions INTEGER NOT NULL,
+FOREIGN KEY (CarMake) REFERENCES CarDesign (CarMake)
+);
+
+INSERT INTO CarEfficiency
+(CarMake, MilesPerGallon, CO2Emissions)
+VALUES 
+('Peugeot 107', '48.5', '99'),
+('Hyundai i10', '56.5', '98'),
+('Volkswagen up', '60', '100' ),
+('Ford Ka', '49.9', '114' ),
+('Citroen C1', '65.4', '108'),
+('Toyota Aygo', '63.5', '114'),
+('Fiat Punto', '51.6', '124'),
+('Kia Picanto', '59.7', '123'),
+('Fiat 500', '56', '88'),
+('Nissan Micra', '50', '126');
+
+USE LearnerDriverCars;
+
+CREATE VIEW view_CarPowerCarEfficiency
+AS
+	SELECT DISTINCT
+    p.CarMake,
+    p.Horsepower, 
+	e.MilesPerGallon,
+	e.CO2Emissions
+    FROM CarPower AS P
+    INNER JOIN CarEfficiency AS E
+    ON p.CarMake = e.CarMake;
+
+-- Which car has the highest horsepower to find out the most powerful car?
+
+SELECT DISTINCT P.CarMake, P.Horsepower
+FROM CarPower P
+ORDER BY P.Horsepower DESC;
+
+SELECT DISTINCT P.CarMake, P.Horsepower
+FROM CarPower P
+WHERE P.Horsepower >80;
+
+-- How many cars have 3 doors and how many have 5 doors?
+SELECT COUNT(CarMake), DoorNumber
+FROM CarDesign
+GROUP BY DoorNumber
+ORDER BY COUNT(CarMake);
+
+
+-- For which car is the price lower than £10000
+SELECT DISTINCT F.CarMake, F.Price
+FROM CarFinance F
+WHERE F.Price BETWEEN 0 AND 10000;
+
+-- Which car has the lowest CO2 emissions?
+USE LearnerDriverCars;
+SELECT DISTINCT E.CO2Emissions, E.CarMake
+FROM CarDesign D, CarFinance F, CarEfficiency E
+WHERE D.CarMake = F.CarMake
+AND F.Price BETWEEN 0 AND 10000;
+
+
+-- A stored function creating car ratings
+
+ DELIMITER $$
+ CREATE FUNCTION CarRating
+ (InsurancePremium DECIMAL(5,2))
+ RETURNS VARCHAR(20)
+ DETERMINISTIC 
+ BEGIN 
+ DECLARE CarRating VARCHAR(20); 
+ 
+ IF InsurancePremium <450 THEN
+ SET CarRating = 'PLATINUM';
+ ELSEIF InsurancePremium BETWEEN 450 AND 500 THEN
+ SET CarRating = 'GOLD';
+ ELSEIF InsurancePremium >500 THEN
+ SET CarRating = 'SILVER';
+ END IF;
+ RETURN (CarRating);
+ END $$
+ DELIMITER ;  
+ 
+SELECT DISTINCT CarMake, CarRating(InsurancePremium)
+FROM CarFinance
+ORDER BY InsurancePremium;
+ 
+ 
+ -- A view with 3 tables Power Price and Efficiency to create a comparison table of best learner cars 
+
+CREATE VIEW CarPowerFinanceEfficiency AS
+SELECT DISTINCT
+p.CarMake,
+p.Horsepower,
+c.InsurancePremium,
+c.Price,
+e.MilesPerGallon,
+e.CO2Emissions
+FROM CarPower p, CarFinance c, CarEfficiency e
+WHERE p.CarMake = c.CarMake
+AND c.CarMake = e.CarMake;
