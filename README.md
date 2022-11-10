@@ -6,3 +6,5 @@ I undertook this project as my assessment for the Code First Girls course on Dat
 Therefore, I used Admiral and Google to find my data on cars that learner drivers could consider. I included features such as insurance premiums, car colours, door numbers, price, horsepower and CO2 emissions.
 
 I created a view to see multiple features in one table to make comparisons easier and I also created a stored function to judge insurance premiums with a platinum, gold or silver car rating system
+
+Find my data visualisation for this project on Tableau: https://public.tableau.com/app/profile/caroline.brodersen/viz/LearnerDriverCars/Design
